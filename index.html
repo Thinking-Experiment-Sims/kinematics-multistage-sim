@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kinematics Stagecrafter: Multi-Segment Motion Studio | The Thinking Experiment</title>
+  <meta name="description" content="Inquiry-based interactive kinematics laboratory for mastering multi-segment motion word problems, boundary conditions, and v-t graph chunking.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="if(window.renderMathInElement) renderMathInElement(document.body);"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="light">
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <div class="shell">
+    <!-- Header / Hero Card -->
+    <header class="hero">
+      <div class="hero-top">
+        <div class="hero-badges">
+          <a href="https://thinking-experiment-sims.github.io/interactive-physics/" class="hub-link-badge" title="Return to Physics Simulations Hub">
+            <span class="hub-arrow">←</span> Simulation Hub
+          </a>
+          <span class="badge-tag">Multi-Stage Modeling Lab</span>
+          <button type="button" id="btnToggleHelp" class="help-btn-badge" aria-expanded="false">
+            💡 Solving Strategy Guide
+          </button>
+        </div>
+      </div>
+      <p class="kicker">The Thinking Experiment</p>
+      <h1>Kinematics Stagecrafter: Multi-Segment Motion Studio</h1>
+      <p class="subtitle">
+        Deconstruct multi-segment kinematics word problems into clear physical stages. Discover the <strong>"Baton Pass"</strong> boundary rule ($v_{f,1} = v_{i,2}$), connect intervals to $v-t$ geometric areas, and conquer multi-interval word problems without guessing formulas.
+      </p>
+    </header>
+
+    <!-- Collapsible Help Guide (PER Principles) -->
+    <section id="helpDrawer" class="help-drawer hidden" aria-label="Strategy Walkthrough">
+      <div class="help-header">
+        <h3>How Physicists Solve Multi-Stage Motion Problems</h3>
+        <button type="button" id="btnCloseHelp" class="close-btn" aria-label="Close Guide">✕</button>
+      </div>
+      <div class="help-grid">
+        <div class="help-card">
+          <div class="card-num">01</div>
+          <h4>Segment by Acceleration Rule</h4>
+          <p>You cannot use one formula across the whole story if acceleration changes! Cut the timeline into stages whenever the object shifts between speeding up, cruising ($a = 0$), or braking.</p>
+        </div>
+        <div class="help-card">
+          <div class="card-num">02</div>
+          <h4>The "Baton Pass" Rule</h4>
+          <p>Velocity cannot jump instantaneously. The final velocity of Stage 1 ($v_{f,1}$) is handed off to become the starting velocity of Stage 2 ($v_{0,2}$). Never assume $v_0 = 0$ for later stages!</p>
+        </div>
+        <div class="help-card">
+          <div class="card-num">03</div>
+          <h4>Local $\Delta t$ vs. Master Clock $t$</h4>
+          <p>Kinematic formulas use duration $\Delta t_n$ within each stage. To get the overall trip time, add stage durations: $t_{\text{total}} = \Delta t_1 + \Delta t_2 + \Delta t_3$.</p>
+        </div>
+        <div class="help-card">
+          <div class="card-num">04</div>
+          <h4>Total Distance from $v-t$ Area</h4>
+          <p>The total displacement is the sum of the areas under each stage of the $v-t$ graph. Triangles give $\frac{1}{2}b h$, rectangles give $b h$. Total $\Delta x = \Delta x_1 + \Delta x_2 + \Delta x_3$.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Layout -->
+    <main class="app-layout">
+      <!-- Left Column: Scenario Controls & Simulation Track -->
+      <section class="panel-left">
+        <!-- Scenario Selector Card -->
+        <div class="card scenario-card">
+          <div class="card-title-row">
+            <h2>Select Inquiry Scenario</h2>
+            <span class="scenario-pill" id="scenarioDifficulty">Foundations · 3 Stages</span>
+          </div>
+          <div class="scenario-buttons" role="tablist">
+            <button type="button" class="scenario-tab active" data-scenario="train">
+              <strong>1. Commuter Train</strong>
+              <span>Speed up → Cruise → Brake</span>
+            </button>
+            <button type="button" class="scenario-tab" data-scenario="rocket">
+              <strong>2. Two-Stage Rocket</strong>
+              <span>Powered Boost → Free Fall</span>
+            </button>
+            <button type="button" class="scenario-tab" data-scenario="pursuit">
+              <strong>3. Highway Pursuit</strong>
+              <span>Speeder cruise vs. Police accel</span>
+            </button>
+            <button type="button" class="scenario-tab" data-scenario="incline">
+              <strong>4. Ramp Toss &amp; Rollback</strong>
+              <span>Roll up → Stop at Apex → Roll down</span>
+            </button>
+          </div>
+
+          <!-- Problem Narrative Box -->
+          <div class="problem-box">
+            <div class="problem-badge">Word Problem Statement</div>
+            <p id="problemDescription" class="problem-text">
+              Loading scenario text...
+            </p>
+            <div class="question-targets" id="questionTargets">
+              <!-- Target prompts injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Animated Physical Track View -->
+        <div class="card track-card">
+          <div class="track-header">
+            <div class="hud-group">
+              <span class="hud-label">Master Clock $t$:</span>
+              <span class="hud-val" id="hudClock">0.00 s</span>
+            </div>
+            <div class="hud-group">
+              <span class="hud-label">Position $x$:</span>
+              <span class="hud-val" id="hudPosition">0.0 m</span>
+            </div>
+            <div class="hud-group">
+              <span class="hud-label">Velocity $v$:</span>
+              <span class="hud-val" id="hudVelocity">0.0 m/s</span>
+            </div>
+            <div class="hud-group">
+              <span class="hud-label">Acceleration $a$:</span>
+              <span class="hud-val" id="hudAcceleration">0.0 m/s²</span>
+            </div>
+            <div class="stage-tag" id="hudActiveStage">Stage 1: Speeding Up</div>
+          </div>
+
+          <!-- Interactive Track Canvas -->
+          <div class="canvas-wrap">
+            <canvas id="trackCanvas" width="900" height="150" aria-label="Animated Motion Track"></canvas>
+          </div>
+
+          <!-- Track Controls -->
+          <div class="sim-controls">
+            <div class="btn-cluster">
+              <button type="button" id="btnPlay" class="btn btn-primary">▶ Play</button>
+              <button type="button" id="btnPause" class="btn btn-secondary" disabled>⏸ Pause</button>
+              <button type="button" id="btnStepBack" class="btn btn-secondary" title="Step Back 0.2s">⏪ Step</button>
+              <button type="button" id="btnStepForward" class="btn btn-secondary" title="Step Forward 0.2s">Step ⏩</button>
+              <button type="button" id="btnReset" class="btn btn-ghost">↺ Reset</button>
+            </div>
+            <div class="playback-speed">
+              <label for="speedSelect">Speed:</label>
+              <select id="speedSelect">
+                <option value="0.25">0.25×</option>
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1.0×</option>
+                <option value="2">2.0×</option>
+              </select>
+            </div>
+            <div class="scrubber-wrap">
+              <label for="timeScrubber">Timeline:</label>
+              <input type="range" id="timeScrubber" min="0" max="45" step="0.1" value="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Graphs (v-t and x-t) -->
+        <div class="card graph-card">
+          <div class="graph-toggle-row">
+            <h3>Synchronized Kinematic Curves</h3>
+            <div class="graph-tabs">
+              <button type="button" class="tab-btn active" id="tabVt">Velocity–Time (v–t)</button>
+              <button type="button" class="tab-btn" id="tabXt">Position–Time (x–t)</button>
+              <button type="button" class="tab-btn" id="tabBoth">Stacked (x–t &amp; v–t)</button>
+            </div>
+          </div>
+          <div class="graph-canvas-container" id="graphContainer">
+            <canvas id="graphCanvas" width="900" height="260" aria-label="Velocity and Position Graphs"></canvas>
+          </div>
+          <div class="graph-legend">
+            <span class="legend-chip stage1"><span class="chip-dot"></span> Stage 1 Area</span>
+            <span class="legend-chip stage2"><span class="chip-dot"></span> Stage 2 Area</span>
+            <span class="legend-chip stage3"><span class="chip-dot"></span> Stage 3 Area</span>
+            <span class="legend-chip playhead"><span class="chip-bar"></span> Current Playhead</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: The "Baton Pass" Bridge, Stage T-Chart, and Solver -->
+      <section class="panel-right">
+        <!-- Baton Pass Highlight Card -->
+        <div class="card baton-card" id="batonCard">
+          <div class="baton-title">
+            <span class="baton-icon">🤝</span>
+            <h4>The "Baton Pass" Boundary Connector</h4>
+          </div>
+          <p class="baton-desc">
+            Observe the hand-off between consecutive motion segments. Velocity at the finish line of one segment is inherited as the starting velocity of the next:
+          </p>
+          <div class="baton-visual" id="batonVisual">
+            <!-- Dynamically populated with stage connection pills -->
+          </div>
+        </div>
+
+        <!-- Stage Variable T-Chart Scaffold -->
+        <div class="card tchart-card">
+          <div class="tchart-header">
+            <h3>Stage T-Chart: Step-by-Step Givens</h3>
+            <div class="stage-pills" id="stageTabPills">
+              <!-- Stage buttons injected dynamically -->
+            </div>
+          </div>
+
+          <div class="tchart-body" id="tchartContent">
+            <!-- Active stage input & calculation template injected dynamically -->
+          </div>
+
+          <div class="tchart-actions">
+            <button type="button" id="btnCheckStage" class="btn btn-primary">Check This Stage</button>
+            <button type="button" id="btnRevealStage" class="btn btn-ghost">Show Solution Steps</button>
+          </div>
+          <div class="stage-feedback" id="stageFeedback" role="alert" aria-live="polite"></div>
+        </div>
+
+        <!-- Total Journey Synthesis Card -->
+        <div class="card synthesis-card">
+          <h3>Total Journey Synthesis</h3>
+          <table class="synthesis-table">
+            <thead>
+              <tr>
+                <th>Segment</th>
+                <th>Interval $\Delta t$</th>
+                <th>Clock Interval</th>
+                <th>Segment $\Delta x$</th>
+              </tr>
+            </thead>
+            <tbody id="synthesisTableBody">
+              <!-- Injected dynamically -->
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td><strong>Total Journey:</strong></td>
+                <td id="synthTotalDt"><strong>--</strong></td>
+                <td id="synthClockRange"><strong>0.00s → --</strong></td>
+                <td id="synthTotalDx"><strong>--</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Common Student Trap Warning Box -->
+          <div class="trap-warning" id="trapWarning">
+            <strong>⚠️ Caution / PER Student Trap:</strong>
+            <p id="trapText">
+              Never plug the total clock time directly into Stage 2's $\Delta t$. Notice that Stage 2 only lasts for its own duration!
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="src/main.js"></script>
+</body>
+</html>
