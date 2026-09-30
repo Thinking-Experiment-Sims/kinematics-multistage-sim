@@ -8,8 +8,9 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="if(window.renderMathInElement) renderMathInElement(document.body);"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles-tchart.css">
 </head>
 <body data-theme="light">
   <div class="bg-grid" aria-hidden="true"></div>
@@ -29,7 +30,7 @@
       <p class="kicker">The Thinking Experiment</p>
       <h1>Kinematics Stagecrafter: Multi-Segment Motion Studio</h1>
       <p class="subtitle">
-        Deconstruct multi-segment kinematics word problems into clear physical stages. Discover the <strong>"Baton Pass"</strong> boundary rule ($v_{f,1} = v_{i,2}$), connect intervals to $v-t$ geometric areas, and conquer multi-interval word problems without guessing formulas.
+        Deconstruct multi-segment kinematics word problems into clear physical stages. Discover the <strong>"Baton Pass"</strong> boundary rule ($v_{f,1} = v_{0,2}$ and $x_{f,1} = x_{0,2}$), tell position from displacement, connect intervals to $v$–$t$ areas, and solve multi-interval word problems without guessing formulas.
       </p>
     </header>
 
@@ -43,12 +44,12 @@
         <div class="help-card">
           <div class="card-num">01</div>
           <h4>Segment by Acceleration Rule</h4>
-          <p>You cannot use one formula across the whole story if acceleration changes! Cut the timeline into stages whenever the object shifts between speeding up, cruising ($a = 0$), or braking.</p>
+          <p>You cannot use one formula across the whole story if acceleration changes! Cut the timeline into stages wherever $a$ changes — and <em>only</em> there. If $a$ stays the same, it is one interval, even if the object stops and turns around.</p>
         </div>
         <div class="help-card">
           <div class="card-num">02</div>
           <h4>The "Baton Pass" Rule</h4>
-          <p>Velocity cannot jump instantaneously. The final velocity of Stage 1 ($v_{f,1}$) is handed off to become the starting velocity of Stage 2 ($v_{0,2}$). Never assume $v_0 = 0$ for later stages!</p>
+          <p>Two things are handed off at every stage boundary. Velocity can't jump, so $v_{f,1} = v_{0,2}$. Position can't jump either, so $x_{f,1} = x_{0,2}$. Never assume $v_0 = 0$ or $x_0 = 0$ for later stages!</p>
         </div>
         <div class="help-card">
           <div class="card-num">03</div>
@@ -57,8 +58,13 @@
         </div>
         <div class="help-card">
           <div class="card-num">04</div>
-          <h4>Total Distance from $v-t$ Area</h4>
-          <p>The total displacement is the sum of the areas under each stage of the $v-t$ graph. Triangles give $\frac{1}{2}b h$, rectangles give $b h$. Total $\Delta x = \Delta x_1 + \Delta x_2 + \Delta x_3$.</p>
+          <h4>Total Displacement from $v$–$t$ Area</h4>
+          <p>Each stage's area under the $v$–$t$ graph is its displacement: triangles give $\frac{1}{2}bh$, rectangles give $bh$, and area below the axis counts as negative. Total $\Delta x = \Delta x_1 + \Delta x_2 + \Delta x_3$. Distance traveled adds the areas without signs.</p>
+        </div>
+        <div class="help-card">
+          <div class="card-num">05</div>
+          <h4>Position vs. Displacement</h4>
+          <p>$x = \tfrac{1}{2}at^2 + v_0t + x_0$ tells you <em>where</em> the object is ($t$ = time since the stage began). $\Delta x = v_0\Delta t + \tfrac{1}{2}a(\Delta t)^2$ tells you <em>how far it moved</em> during the stage. They are linked by $x = x_0 + \Delta x$ and agree only when $x_0 = 0$.</p>
         </div>
       </div>
     </section>
@@ -84,11 +90,11 @@
             </button>
             <button type="button" class="scenario-tab" data-scenario="pursuit">
               <strong>3. Highway Pursuit</strong>
-              <span>Speeder cruise vs. Police accel</span>
+              <span>Two bodies · one interval</span>
             </button>
             <button type="button" class="scenario-tab" data-scenario="incline">
               <strong>4. Ramp Toss &amp; Rollback</strong>
-              <span>Roll up → Stop at Apex → Roll down</span>
+              <span>Up, stop, back down · one interval</span>
             </button>
           </div>
 
@@ -112,7 +118,7 @@
               <span class="hud-val" id="hudClock">0.00 s</span>
             </div>
             <div class="hud-group">
-              <span class="hud-label">Position $x$:</span>
+              <span class="hud-label" id="hudPosLabel">Position $x$:</span>
               <span class="hud-val" id="hudPosition">0.0 m</span>
             </div>
             <div class="hud-group">
@@ -169,12 +175,7 @@
           <div class="graph-canvas-container" id="graphContainer">
             <canvas id="graphCanvas" width="900" height="260" aria-label="Velocity and Position Graphs"></canvas>
           </div>
-          <div class="graph-legend">
-            <span class="legend-chip stage1"><span class="chip-dot"></span> Stage 1 Area</span>
-            <span class="legend-chip stage2"><span class="chip-dot"></span> Stage 2 Area</span>
-            <span class="legend-chip stage3"><span class="chip-dot"></span> Stage 3 Area</span>
-            <span class="legend-chip playhead"><span class="chip-bar"></span> Current Playhead</span>
-          </div>
+          <div class="graph-legend" id="graphLegend"></div>
         </div>
       </section>
 
@@ -184,11 +185,9 @@
         <div class="card baton-card" id="batonCard">
           <div class="baton-title">
             <span class="baton-icon">🤝</span>
-            <h4>The "Baton Pass" Boundary Connector</h4>
+            <h4 id="batonTitle">The "Baton Pass" Boundary Connector</h4>
           </div>
-          <p class="baton-desc">
-            Observe the hand-off between consecutive motion segments. Velocity at the finish line of one segment is inherited as the starting velocity of the next:
-          </p>
+          <p class="baton-desc" id="batonDesc"></p>
           <div class="baton-visual" id="batonVisual">
             <!-- Dynamically populated with stage connection pills -->
           </div>
@@ -197,7 +196,7 @@
         <!-- Stage Variable T-Chart Scaffold -->
         <div class="card tchart-card">
           <div class="tchart-header">
-            <h3>Stage T-Chart: Step-by-Step Givens</h3>
+            <h3>Stage T-Chart: Givens → Results</h3>
             <div class="stage-pills" id="stageTabPills">
               <!-- Stage buttons injected dynamically -->
             </div>
@@ -223,7 +222,8 @@
                 <th>Segment</th>
                 <th>Interval $\Delta t$</th>
                 <th>Clock Interval</th>
-                <th>Segment $\Delta x$</th>
+                <th id="synthDxHead">Segment $\Delta x$</th>
+                <th id="synthPosHead">End position $x_f$</th>
               </tr>
             </thead>
             <tbody id="synthesisTableBody">
@@ -235,6 +235,7 @@
                 <td id="synthTotalDt"><strong>--</strong></td>
                 <td id="synthClockRange"><strong>0.00s → --</strong></td>
                 <td id="synthTotalDx"><strong>--</strong></td>
+                <td id="synthTotalX"><strong>—</strong></td>
               </tr>
             </tfoot>
           </table>
