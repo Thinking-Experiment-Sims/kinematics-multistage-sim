@@ -663,7 +663,7 @@ class KinematicsStagecrafter {
 
     // Track layout coordinates
     const marginX = 60;
-    const trackY = height * 0.65;
+    const trackY = height - 42; // Track rail near bottom (leaving room for ticks)
     const trackWidth = width - marginX * 2;
 
     // Map physical displacement x -> pixel X
@@ -676,24 +676,54 @@ class KinematicsStagecrafter {
 
     const scaleX = (x) => marginX + ((x - minX) / (maxX - minX)) * trackWidth;
 
-    // Draw background track zone banners
-    let currentXVal = 0;
+    // 1. Draw top Stage Zone Header Bar (Clean segmented pills across the top)
+    const topBarY = 10;
+    const topBarH = 26;
+
     sc.stages.forEach((st, idx) => {
       const startPix = scaleX(st.x0);
       const endPix = scaleX(st.calc.xf);
-      const zoneWidth = Math.max(2, endPix - startPix);
+      const zoneWidth = Math.max(4, endPix - startPix);
 
-      ctx.fillStyle = idx % 2 === 0 ? 'rgba(15, 126, 155, 0.05)' : 'rgba(214, 123, 25, 0.05)';
-      ctx.fillRect(startPix, 15, zoneWidth, trackY - 15);
+      // Light background column down to track
+      ctx.fillStyle = idx % 2 === 0 ? 'rgba(15, 126, 155, 0.04)' : 'rgba(214, 123, 25, 0.04)';
+      ctx.fillRect(startPix, topBarY + topBarH, zoneWidth, trackY - (topBarY + topBarH));
 
-      // Zone label header
-      ctx.fillStyle = st.color;
-      ctx.font = '600 11px Inter, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${st.name.split(':')[0]} (${st.subtitle})`, startPix + 8, 30);
+      // Dashed vertical boundary line between stages
+      if (idx > 0) {
+        ctx.strokeStyle = '#c8dbe3';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(startPix, topBarY);
+        ctx.lineTo(startPix, trackY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Top Stage Badge Pill
+      ctx.fillStyle = idx % 2 === 0 ? '#eaf4f7' : '#fdf2e4';
+      ctx.strokeStyle = st.color;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      // Draw rounded rectangle for stage badge header
+      const pillPad = 3;
+      const pillW = Math.max(12, zoneWidth - pillPad * 2);
+      ctx.roundRect(startPix + pillPad, topBarY, pillW, topBarH, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      // Label text inside top badge pill (only if enough width)
+      if (pillW > 45) {
+        ctx.fillStyle = st.color;
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        const shortStage = `Stage ${idx + 1}`;
+        const fullTitle = pillW > 140 ? `${shortStage}: ${st.subtitle}` : shortStage;
+        ctx.fillText(fullTitle, startPix + pillPad + 8, topBarY + 17);
+      }
     });
 
-    // Draw Ground / Track line
+    // 2. Draw Ground / Track line
     ctx.strokeStyle = '#c8dbe3';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -701,7 +731,7 @@ class KinematicsStagecrafter {
     ctx.lineTo(width - marginX + 20, trackY);
     ctx.stroke();
 
-    // Track distance tick marks
+    // Track distance tick marks & numeric scale
     ctx.fillStyle = '#718894';
     ctx.strokeStyle = '#97b8c7';
     ctx.lineWidth = 1.5;
@@ -718,16 +748,16 @@ class KinematicsStagecrafter {
       ctx.lineTo(pixX, trackY + 6);
       ctx.stroke();
 
-      ctx.fillText(`${physX.toFixed(1)}m`, pixX, trackY + 18);
+      ctx.fillText(`${physX.toFixed(1)}m`, pixX, trackY + 20);
     }
 
-    // In Pursuit mode: draw Speeder car first
+    // 3. In Pursuit mode: draw Speeder car
     if (sc.id === 'pursuit' && state.speederX !== null) {
       const speederPixX = scaleX(state.speederX);
       this.drawCar(ctx, speederPixX, trackY, '#718894', 'Speeder (24 m/s const)');
     }
 
-    // Draw primary object / vehicle
+    // 4. Draw primary object / vehicle
     const mainPixX = scaleX(state.x);
     if (sc.vehicleType === 'train') {
       this.drawTrain(ctx, mainPixX, trackY, state.stage.color);
@@ -739,16 +769,17 @@ class KinematicsStagecrafter {
       this.drawCart(ctx, mainPixX, trackY, state.stage.color);
     }
 
-    // Velocity Vector Arrow (Teal)
+    // 5. Velocity Vector Arrow (Teal) - positioned safely between vehicle and top banners
+    const vehicleTopY = trackY - 28;
     if (Math.abs(state.v) > 0.05) {
       const arrowLength = Math.max(-80, Math.min(80, state.v * 3));
-      this.drawVectorArrow(ctx, mainPixX, trackY - 38, arrowLength, '#0f7e9b', `v = ${state.v.toFixed(1)} m/s`);
+      this.drawVectorArrow(ctx, mainPixX, vehicleTopY - 14, arrowLength, '#0f7e9b', `v = ${state.v.toFixed(1)} m/s`);
     }
 
-    // Acceleration Vector Arrow (Amber)
+    // 6. Acceleration Vector Arrow (Amber) - positioned with clear vertical clearance
     if (Math.abs(state.a) > 0.05) {
       const arrowLength = Math.max(-60, Math.min(60, state.a * 15));
-      this.drawVectorArrow(ctx, mainPixX, trackY - 56, arrowLength, '#d67b19', `a = ${state.a.toFixed(1)} m/s²`);
+      this.drawVectorArrow(ctx, mainPixX, vehicleTopY - 38, arrowLength, '#d67b19', `a = ${state.a.toFixed(1)} m/s²`);
     }
   }
 
