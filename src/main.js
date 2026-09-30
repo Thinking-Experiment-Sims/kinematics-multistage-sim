@@ -1084,10 +1084,17 @@ class KinematicsStagecrafter {
         <span class="baton-source">${bp.from}</span>
         <span class="baton-arrow">➔</span>
         <span class="baton-dest">${bp.to}</span>
-        <span class="baton-tag">${bp.variable}</span>
+        <span class="baton-tag">$${bp.variable}$</span>
       `;
       container.appendChild(row);
     });
+
+    if (window.renderMathInElement) {
+      window.renderMathInElement(container, {
+        delimiters: [{ left: '$', right: '$', display: false }],
+        throwOnError: false
+      });
+    }
   }
 
   highlightBatonHandshake(t) {
