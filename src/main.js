@@ -87,14 +87,14 @@ const SCENARIOS = {
           dx: 50.0,
           xf: 750.0,
           formulaV: '\\Delta t_3 = \\frac{v_f - v_0}{a} = \\frac{0 - 20.0}{-4.0} = 5.0\\text{ s}',
-          formulaX: '\\Delta x_3 = \\frac{v_f^2 - v_0^2}{2a} = \\frac{0 - 20^2}{2(-4.0)} = 50.0\\text{ m}'
+          formulaX: '\\Delta x_3 = v_0 \\Delta t_3 + \\frac{1}{2}a_3 (\\Delta t_3)^2 = (20.0)(5.0) + \\frac{1}{2}(-4.0)(5.0^2) = 100.0 - 50.0 = 50.0\\text{ m}'
         },
         inputs: {
           v0: { label: 'Initial Velocity (v₀,₃)', correct: 20.0, unit: 'm/s', inheritedFrom: 'Stage 2 v_f' },
           vf: { label: 'Final Velocity (v_f,₃)', correct: 0.0, unit: 'm/s' },
           a:  { label: 'Acceleration (a₃)', correct: -4.0, unit: 'm/s²' }
         },
-        equationKey: 'eq3'
+        equationKey: 'eq2'
       }
     ],
     batonPasses: [
@@ -158,15 +158,15 @@ const SCENARIOS = {
           vf: 0.0,
           dx: 64.8,
           xf: 118.8,
-          formulaV: '\\Delta t_2 = \\frac{0 - 36.0}{-10.0} = 3.6\\text{ s}',
-          formulaX: '\\Delta y_2 = \\frac{0 - 36^2}{2(-10.0)} = 64.8\\text{ m} \\implies y_{\\text{max}} = 54.0 + 64.8 = 118.8\\text{ m}'
+          formulaV: '\\Delta t_2 = \\frac{v_f - v_0}{a_2} = \\frac{0 - 36.0}{-10.0} = 3.6\\text{ s}',
+          formulaX: '\\Delta y_2 = v_0 \\Delta t_2 + \\frac{1}{2}a_2 (\\Delta t_2)^2 = (36.0)(3.6) + \\frac{1}{2}(-10.0)(3.6^2) = 129.6 - 64.8 = 64.8\\text{ m} \\implies y_{\\text{max}} = 54.0 + 64.8 = 118.8\\text{ m}'
         },
         inputs: {
           v0: { label: 'Burnout Velocity (v₀,₂)', correct: 36.0, unit: 'm/s', inheritedFrom: 'Burnout v_{f,1}' },
           vf: { label: 'Apex Velocity (v_f,₂)', correct: 0.0, unit: 'm/s' },
           a:  { label: 'Free-fall Accel (g)', correct: -10.0, unit: 'm/s²' }
         },
-        equationKey: 'eq3'
+        equationKey: 'eq2'
       }
     ],
     batonPasses: [
@@ -278,14 +278,14 @@ const SCENARIOS = {
           dx: 1.8,
           xf: 1.8,
           formulaV: '\\Delta t_1 = \\frac{0 - 1.2}{-0.4} = 3.0\\text{ s}',
-          formulaX: '\\Delta x_1 = \\frac{0 - 1.2^2}{2(-0.4)} = +1.80\\text{ m}'
+          formulaX: '\\Delta x_1 = v_0 \\Delta t_1 + \\frac{1}{2}a (\\Delta t_1)^2 = (1.2)(3.0) + \\frac{1}{2}(-0.4)(3.0^2) = 3.6 - 1.8 = +1.80\\text{ m}'
         },
         inputs: {
           v0: { label: 'Launch Speed (v₀,₁)', correct: 1.2, unit: 'm/s' },
           vf: { label: 'Apex Velocity (v_f,₁)', correct: 0.0, unit: 'm/s' },
           a:  { label: 'Ramp Accel (a)', correct: -0.4, unit: 'm/s²' }
         },
-        equationKey: 'eq3'
+        equationKey: 'eq2'
       },
       {
         name: 'Stage 2: Rolling Back Down',
@@ -1216,10 +1216,6 @@ class KinematicsStagecrafter {
           <label class="eq-label">
             <input type="radio" name="stageEq" value="eq2">
             <span>$\\Delta x = v_0 \\Delta t + \\frac{1}{2}a (\\Delta t)^2$</span>
-          </label>
-          <label class="eq-label">
-            <input type="radio" name="stageEq" value="eq3">
-            <span>$v_f^2 = v_0^2 + 2a\\Delta x$</span>
           </label>
           <label class="eq-label">
             <input type="radio" name="stageEq" value="eq_const">
